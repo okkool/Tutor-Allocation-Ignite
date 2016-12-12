@@ -30,8 +30,11 @@ public class Classroom {
 		
 		this.size = 0;
 		volunteers 	= new int [this.max_size];
-		skill_value = new int [this.max_size];
-		skill_size 	= new int [this.max_size];
+		skill_value = new int [this.skills.length];
+		for (int i = 0; i < volunteers.length; i++) {
+			volunteers[i]=-1;
+		}
+		//skill_size 	= new int [this.skills.length];
 	}
 
 	public int getSkill_value(int i) {
@@ -43,7 +46,7 @@ public class Classroom {
 		return "Classroom [school_name=" + school_name + ", class_name=" + class_name + ", skills="
 				+ Arrays.toString(skills) + ", size=" + size + ", min_skill_value=" + Arrays.toString(min_skill_value)
 				+ ", min_skill_size=" + Arrays.toString(min_skill_size) + ", skill_value="
-				+ Arrays.toString(skill_value) + ", skill_size=" + Arrays.toString(skill_size) + ", max_size="
+				+ Arrays.toString(skill_value) + ", max_size="
 				+ max_size + ", volunteers=" + Arrays.toString(volunteers) + "]";
 	}
 

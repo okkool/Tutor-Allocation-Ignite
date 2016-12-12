@@ -6,6 +6,7 @@ public class Classroom {
 	private String class_name;
 	
 	private String []	skills;
+	int 				size;
 	private int [] 		min_skill_value;
 	private int [] 		min_skill_size;
 	private int [] 		skill_value;
@@ -27,20 +28,23 @@ public class Classroom {
 		if (this.skills.length!=this.min_skill_value.length||this.skills.length!=this.min_skill_size.length){throw new InvalidAlgorithmParameterException("class \""+this.class_name+"\" in school \""+this.school_name+"\" has no value for one or more skills.");}
 		if (max_size<1){throw new InvalidAlgorithmParameterException("class \""+this.class_name+"\" in school \""+this.school_name+"\" can not have max size "+max_size+".");}
 		
+		this.size = 0;
 		volunteers 	= new int [this.max_size];
 		skill_value = new int [this.max_size];
 		skill_size 	= new int [this.max_size];
 	}
 
-	@Override
-	public    String 	toString() {
-		return "Classroom [school_name=" + school_name + ", class_name=" + class_name + ", skills="
-				+ Arrays.toString(skills) + ", min_skill_value=" + Arrays.toString(min_skill_value)
-				+ ", min_skill_size=" + Arrays.toString(min_skill_size) + ", max_size=" + max_size + ", volunteers="
-				+ Arrays.toString(volunteers) + "]";
-	}
 	public int getSkill_value(int i) {
 		return skill_value[i];
+	}
+
+	@Override
+	public String toString() {
+		return "Classroom [school_name=" + school_name + ", class_name=" + class_name + ", skills="
+				+ Arrays.toString(skills) + ", size=" + size + ", min_skill_value=" + Arrays.toString(min_skill_value)
+				+ ", min_skill_size=" + Arrays.toString(min_skill_size) + ", skill_value="
+				+ Arrays.toString(skill_value) + ", skill_size=" + Arrays.toString(skill_size) + ", max_size="
+				+ max_size + ", volunteers=" + Arrays.toString(volunteers) + "]";
 	}
 
 	public void setSkill_value(int i, int skill_value) {
@@ -74,6 +78,13 @@ public class Classroom {
 	}
 	protected void 		setVolunteers		(int i, int volunteers) {
 		this.volunteers[i] = volunteers;
+	}
+	public void setsize(int size ){
+		this.size = size;
+	}
+	public int getsize() {
+		// TODO Auto-generated method stub
+		return this.size;
 	}
 	
 	

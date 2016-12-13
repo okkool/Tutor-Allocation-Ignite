@@ -1,0 +1,15 @@
+        .button {
+          -fx-pref-height: 25px;
+          -fx-pref-width: 65px;
+          -fx-font: 12px tahoma;
+          
+        }
+        
+        .label{
+            -fx-font: 13px tahoma;
+        }
+        .myWarnLabel{
+            -fx-font: italic 11px tahoma;
+        }
+        
+        

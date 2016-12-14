@@ -52,5 +52,17 @@ public class Volunteer {
 	protected void 		setSkill_value	(int i, int skill_value) {
 		this.skill_value[i] = skill_value;
 	}
+
+
+	public String summary() {
+		if(classid ==-1){
+			return name+"\t "+Arrays.toString(skill_value)+" was not used";
+		}
+		return name+"\t "+Arrays.toString(skill_value)+" was their "+
+		(preferences[classid]==0?"1st":
+			(preferences[classid]==1?"2nd":
+				(preferences[classid]==2?"3rd":
+					(preferences[classid]+1+"th"))))+" preferences";
+	}
 	
 }

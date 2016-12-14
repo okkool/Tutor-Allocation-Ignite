@@ -34,7 +34,7 @@ public class Classroom {
 		for (int i = 0; i < volunteers.length; i++) {
 			volunteers[i]=-1;
 		}
-		//skill_size 	= new int [this.skills.length];
+		skill_size 	= new int [this.skills.length];
 	}
 
 	public int getSkill_value(int i) {
@@ -82,6 +82,14 @@ public class Classroom {
 	protected void 		setVolunteers		(int i, int volunteers) {
 		this.volunteers[i] = volunteers;
 	}
+	public int getMax_size() {
+		return max_size;
+	}
+
+	public void setMax_size(int max_size) {
+		this.max_size = max_size;
+	}
+
 	public void setsize(int size ){
 		this.size = size;
 	}
@@ -89,8 +97,16 @@ public class Classroom {
 		// TODO Auto-generated method stub
 		return this.size;
 	}
-	
-	
+
+	public String printMin_skill_size() {
+		return Arrays.toString(min_skill_size)+" max "+max_size;
+	}
+	public String printskill_value() {
+		return Arrays.toString(skill_value);
+	}
+	public String printSkill_size() {
+		return Arrays.toString(skill_size);
+	}
 	
 	
 }

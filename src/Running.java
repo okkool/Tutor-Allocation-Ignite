@@ -101,11 +101,7 @@ public class Running {
 			//input done 
 
 
-			int [] skill_demand  = get_demand(classrooms,number_skills );
-			int [] skill_supplie = get_supplie(volunteers,number_skills);
 
-			System.out.println("demand  "+Arrays.toString(skill_demand));
-			System.out.println("supplie "+Arrays.toString(skill_supplie));
 
 			boolean [][] asked = new boolean [number_classrooms][number_volunteers];
 			while(asknext(asked,classrooms,volunteers,number_skills));
@@ -123,7 +119,10 @@ public class Running {
 		for (int i = 0; i < classrooms.length; i++) {
 			for (int j = 0; j < number_skills; j++) {
 				skill_demand[j] += classrooms[i].getMin_skill_size(j);
-				skill_demand[j] -= classrooms[i].getSkill_size(j);
+				skill_demand[j] -= classrooms[i].getSkill_value(j);
+				if(skill_demand[j]<0){
+					skill_demand[j]=0;
+				}
 			}
 		}
 		return skill_demand;
@@ -144,7 +143,7 @@ public class Running {
 		int [] skill_demand  = get_demand(classroom,number_skills );
 		int [] skill_supplie = get_supplie(volunteer,number_skills);
 		for (int j = 0; j < number_skills; j++) {
-			skill_demand[j] -= skill_supplie[j];
+			skill_demand[j] = skill_supplie[j]-skill_demand[j];
 		}
 		int min = skill_demand[0];
 		int min_index = 0 ;
@@ -154,27 +153,35 @@ public class Running {
 				min = skill_demand[i];
 			}
 		}
-		int max = classroom[0].getMin_skill_size(min_index);
+		int max = classroom[0].getMin_skill_size(min_index)- classroom[0].getSkill_value(min_index);
 		int max_index = 0;
 		for (int i = 0; i < classroom.length; i++) {
-			if(max<classroom[i].getMin_skill_size(min_index)){
+			if(max< classroom[i].getMin_skill_size(min_index)- classroom[i].getSkill_value(min_index)){
 				max_index = i;
-				max = classroom[i].getMin_skill_size(min_index);
+				max =  classroom[i].getMin_skill_size(min_index)- classroom[i].getSkill_value(min_index);
 			}
 		}
-		int[]  a =  { min_index , max_index };
+		int[]  a =  {  min_index , max_index};
 		return a;
 	}
 
 	private static boolean asknext(boolean [][] asked , Classroom [] classroom ,Volunteer [] volunteer,int number_skills) {
 		int[]  a = next(classroom, volunteer, number_skills);
+		System.out.println(classroom[a[1]].getClass_name()+" needs skill "+classroom[a[1]].getSkills(a[0]));
+		int [] skill_demand  = get_demand(classroom,number_skills );
+		int [] skill_supplie = get_supplie(volunteer,number_skills);
+
+		System.out.println("demand  "+Arrays.toString(skill_demand));
+		System.out.println("supplie "+Arrays.toString(skill_supplie));
+
+
 		for (int i = 0; i < volunteer.length; i++) {
 			if(!asked[a[1]][i]){
-				if(volunteer[i].getSkill_value(a[0])<1){
-					if(volunteer[i].getClassid()==-1){
-						if(volunteer[i].getPreferences(a[1])!=-1){
+				if(volunteer[i].getSkill_value(a[0])>0){
+					if(volunteer[i].getClassid()==-1){//not in a class yet
+						if(volunteer[i].getPreferences(a[1])!=-1){//able to go to this class
 							System.out.println(volunteer[i].toString());
-							System.out.println("was in this ...");
+							System.out.println("was in none...");
 							System.out.println(classroom[a[1]].toString());
 							volunteer[i].setClassid(a[1]);
 							classroom[a[1]].setVolunteers(classroom[a[1]].getsize(),i);
@@ -187,28 +194,34 @@ public class Running {
 							return true;
 						}
 					}else{
-						if(volunteer[i].getPreferences(a[1])<volunteer[i].getPreferences(volunteer[i].getClassid())){
-							System.out.println(volunteer[i].toString());
-							System.out.println("was in this ...");
-							System.out.println(classroom[volunteer[i].getClassid()].toString());
-							
-							for (int j = 0; j < number_skills; j++) {
-								classroom[volunteer[i].getClassid()].setSkill_value(j,classroom[volunteer[i].getClassid()].getSkill_value(j)-volunteer[i].getSkill_value(j));
+						if(volunteer[i].getPreferences(a[1])!=-1){
+							if(volunteer[i].getPreferences(a[1])<volunteer[i].getPreferences(volunteer[i].getClassid())){
+								System.out.println(volunteer[i].toString());
+								System.out.println("was in this ...");
+								System.out.println(classroom[volunteer[i].getClassid()].toString());//size == 1
+
+								for (int j = 0; j < number_skills; j++) {
+									classroom[volunteer[i].getClassid()].setSkill_value(j,classroom[volunteer[i].getClassid()].getSkill_value(j)-volunteer[i].getSkill_value(j));
+								}
+								classroom[volunteer[i].getClassid()].setVolunteers(classroom[volunteer[i].getClassid()].getsize()-1,-1);
+								classroom[volunteer[i].getClassid()].setsize(classroom[volunteer[i].getClassid()].getsize()-1);
+								
+								System.out.println(classroom[volunteer[i].getClassid()].toString()); //size = -1
+								System.out.println("now in ");
+								System.out.println(classroom[a[1]].toString());
+								
+								volunteer[i].setClassid(a[1]);	
+								
+								classroom[a[1]].setVolunteers(classroom[a[1]].getsize(),i);
+								classroom[a[1]].setsize(classroom[a[1]].getsize()+1);
+								
+								for (int j = 0; j < number_skills; j++) {
+									classroom[a[1]].setSkill_value(j,classroom[a[1]].getSkill_value(j)+volunteer[i].getSkill_value(j));
+								}
+								System.out.println(classroom[a[1]].toString());
+								asked[a[1]][i]=true;
+								return true;
 							}
-							System.out.println(classroom[volunteer[i].getClassid()].toString());
-							classroom[volunteer[i].getClassid()].setVolunteers(classroom[volunteer[i].getClassid()].getsize(),-1);
-							classroom[volunteer[i].getClassid()].setsize(classroom[a[1]].getsize()-1);
-							volunteer[i].setClassid(a[1]);	
-							classroom[a[1]].setVolunteers(classroom[a[1]].getsize(),i);
-							classroom[a[1]].setsize(classroom[a[1]].getsize()+1);
-							System.out.println("now in ");
-							System.out.println(classroom[a[1]].toString());
-							for (int j = 0; j < number_skills; j++) {
-								classroom[a[1]].setSkill_value(j,classroom[a[1]].getSkill_value(j)+volunteer[i].getSkill_value(j));
-							}
-							System.out.println(classroom[a[1]].toString());
-							asked[a[1]][i]=true;
-							return true;
 						}
 					}
 				}

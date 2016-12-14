@@ -1,12 +1,16 @@
 import java.security.InvalidAlgorithmParameterException;
 import java.util.Arrays;
-
+/**
+ * A representation of each classroom in the Ignite Mentoring System holding
+ * @author Mark Robson
+ * @author Phat comments brough to you by Nicholas Pritchard
+ */
 public class Classroom {
 	private String school_name;
 	private String class_name;
 	
 	private String []	skills;
-	int 				size;
+			int			size;
 	private int [] 		min_skill_value;
 	private int [] 		min_skill_size;
 	private int [] 		skill_value;
@@ -14,6 +18,18 @@ public class Classroom {
 	private int 		max_size;
 	private int []		volunteers;
 	
+	/**
+	 * A constructor method for a classroom
+	 * 
+	 * @param school_name		The name of the school
+	 * @param class_name		The name of the class
+	 * @param skills			An string array representation of the skills available for manipulation
+	 * @param min_skill_value	Redundant? TODO: Rename as it has been used elsewhere
+	 * @param min_skill_size	An array representation of the 'amount' of each skill required for a class to be filled by one or more volunteers with this skill
+	 * @param max_size			The maximum number of volunteers the class can take
+	 * 
+	 * TODO: Check throwing of errors, this should be done elsewhere but this is okay for now
+	 */
 	public Classroom(String school_name, String class_name, String[] skills, int[] min_skill_value,
 			int[] min_skill_size, int max_size) throws InvalidAlgorithmParameterException {
 		super();
@@ -37,10 +53,21 @@ public class Classroom {
 		skill_size 	= new int [this.skills.length];
 	}
 
+	/**
+	 * Returns the skill value for a provided skill index
+	 * 
+	 * @param i	The index of the skill requested
+	 * @return 	The total skill value of the classroom's ith skill
+	 */
 	public int getSkill_value(int i) {
 		return skill_value[i];
 	}
 
+	/**
+	 * A standard toString method
+	 * 
+	 * @return 	Returns a string representation of all the class variables
+	 */
 	@Override
 	public String toString() {
 		return "Classroom [school_name=" + school_name + ", class_name=" + class_name + ", skills="
@@ -49,7 +76,11 @@ public class Classroom {
 				+ Arrays.toString(skill_value) + ", max_size="
 				+ max_size + ", volunteers=" + Arrays.toString(volunteers) + "]";
 	}
-
+	
+	/**
+	 * Various getters and setters for each class variable
+	 * Array variables accept an index variable as a parameter
+	 */
 	public void setSkill_value(int i, int skill_value) {
 		this.skill_value[i] = skill_value;
 	}
@@ -94,10 +125,13 @@ public class Classroom {
 		this.size = size;
 	}
 	public int getsize() {
-		// TODO Auto-generated method stub
 		return this.size;
 	}
-
+	
+	/**
+	 * Seperate getters for the array variables to print them all
+	 * Implemented for flexibility
+	 */
 	public String printMin_skill_size() {
 		return Arrays.toString(min_skill_size)+" max "+max_size;
 	}

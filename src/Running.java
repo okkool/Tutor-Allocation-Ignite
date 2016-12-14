@@ -68,8 +68,10 @@ public class Running {
 				for (int j = 0; j < number_classrooms	 ; j++) {
 					preferences [j]     = (int) workbook1.getSheetAt(2).getRow(1+i).getCell(2+number_skills+j).getNumericCellValue();
 				}
+				/*
 				boolean [] seen = new boolean [number_classrooms];
 				int 	[] temp = new int 	  [number_classrooms];
+				
 				int l = 1;
 				for (int j = 0; j < number_classrooms	 ; j++) {
 					int min = 0 ;
@@ -97,11 +99,13 @@ public class Running {
 						temp [l-2]= min_index;
 						seen[min_index] = true;
 					}
+					
 				}
 				for (int j = l; j < temp.length; j++) {
 					temp [j] = -1 ; 
 				}
-				volunteers[i] = new Volunteer(name, email, Skills, skill, temp);
+				//*///
+				volunteers[i] = new Volunteer(name, email, Skills, skill, preferences);
 				System.out.println(i+"\t "+volunteers[i].toString());
 			}
 			//input done 
@@ -110,7 +114,8 @@ public class Running {
 
 
 			boolean [][] asked = new boolean [number_classrooms][number_volunteers];
-			while(askme(asked,classrooms,volunteers,number_skills));
+			boolean end [] = new boolean [number_classrooms];
+			while(askme(asked,classrooms,volunteers,number_skills,end));
 			print_sets(classrooms, volunteers, number_skills);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -204,23 +209,34 @@ public class Running {
 		return a;
 	}
 
-	private static int newnext (Classroom [] classroom ,Volunteer [] volunteer,int number_skills){
+	private static int newnext (Classroom [] classroom ,Volunteer [] volunteer,int number_skills,boolean [] end){
 		int max = 0;
 		int max_index = 0;
 		for (int i = 0; i < classroom.length; i++) {
 			int temp = 0 ; 
 			for (int j = 0; j < number_skills; j++) {
-				temp += classroom[i].getMin_skill_size(j)- classroom[i].getSkill_value(j)- classroom[i].getSkill_size(j);
+				temp += classroom[i].getMin_skill_size(j) - classroom[i].getSkill_value(j)- classroom[i].getSkill_size(j);
+				if(classroom[i].getsize()==classroom[i].getMax_size()||end[i]){
+					temp = Integer.MIN_VALUE;
+				}
+			}
+			if(max_index == 0&&i==0){
+				max = temp ;
+				max_index = i;
 			}
 			if(max<temp) {
 				max = temp ;
 				max_index = i;
 			}
+			//System.out.println(i+" "+temp);
 		}
-		if(max == 0)
+		//System.out.println("==="+max_index+" "+max);
+		if(max ==  Integer.MIN_VALUE)
 			return -1;
 		return max_index;
 	}
+	
+	
 
 	private static void addtoclass(Classroom classroom[], int classsid,int volunterr_id ,Volunteer[] volunteer,int number_skills) {
 		volunteer[volunterr_id].setClassid(classsid);
@@ -230,7 +246,12 @@ public class Running {
 			classroom[classsid].setSkill_value(j,classroom[classsid].getSkill_value(j)+volunteer[volunterr_id].getSkill_value(j));
 		}
 	}
-	private static void removefromclass(Classroom classroom[], int volunterr_id ,Volunteer[] volunteer,int number_skills) {
+	private static void removefromclass(Classroom classroom[], int volunterr_id ,Volunteer[] volunteer,int number_skills,boolean [] end) {
+		end[volunteer[volunterr_id].getClassid()] = false;
+		for (int i = 0; i < number_skills; i++) {
+			classroom[volunteer[volunterr_id].getClassid()].setSkill_size(i,0);
+			
+		}
 		for (int j = 0; j < number_skills; j++) {
 			classroom[volunteer[volunterr_id].getClassid()].setSkill_value(j,classroom[volunteer[volunterr_id].getClassid()].getSkill_value(j)-volunteer[volunterr_id].getSkill_value(j));
 		}
@@ -265,15 +286,15 @@ public class Running {
 		}
 		return score;
 	}
-	private static boolean askme(boolean [][] asked , Classroom [] classroom ,Volunteer [] volunteer,int number_skills) {
-		int a = newnext(classroom, volunteer, number_skills);
+	private static boolean askme(boolean [][] asked , Classroom [] classroom ,Volunteer [] volunteer,int number_skills,boolean [] end) {
+		int a = newnext(classroom, volunteer, number_skills,end);
 		if(a!=-1){
-			System.out.println(classroom[a].getClass_name()+" needs the most skills ");
+			//System.out.println(classroom[a].getClass_name()+" needs the most skills ");
 			int [] skill_demand  = get_demand(classroom,number_skills );
 			int [] skill_supplie = get_supplie(volunteer,number_skills);
 
-			System.out.println("demand  "+Arrays.toString(skill_demand));
-			System.out.println("supplie "+Arrays.toString(skill_supplie));
+			//System.out.println("demand  "+Arrays.toString(skill_demand));
+			//System.out.println("supplie "+Arrays.toString(skill_supplie));
 
 			PriorityQueue<Integer[]> best = new PriorityQueue<Integer[]>(new quecomp());
 
@@ -293,47 +314,57 @@ public class Running {
 				int class_id = temp [1];
 				if(volunteer[class_id].getClassid()==-1){//not in a class yet
 					if(volunteer[class_id].getPreferences(a)!=-1){//able to go to this class
-						System.out.println(volunteer[class_id].toString());
-						System.out.println("was in none...");
-						System.out.println(classroom[a].toString());
+						//System.out.println(volunteer[class_id].toString());
+						//System.out.println("was in none...");
+						//System.out.println(classroom[a].toString());
 						addtoclass(classroom, a, class_id, volunteer, number_skills);
-						System.out.println(classroom[a].toString());
+						//System.out.println(classroom[a].toString());
 						asked[a][class_id]=true;
 						return true;
 					}
 				}else{
 					if(volunteer[class_id].getPreferences(a)!=-1){
 						if((volunteer[class_id].getPreferences(a)<volunteer[class_id].getPreferences(volunteer[class_id].getClassid())&&score_add(classroom, a, class_id, volunteer, number_skills)-score_remove(classroom, class_id, volunteer, number_skills)>=0)||score_add(classroom, a, class_id, volunteer, number_skills)-score_remove(classroom, class_id, volunteer, number_skills)>0){
-							System.out.println(volunteer[class_id].toString());
-							System.out.println("was in this ...");
+							//System.out.println(volunteer[class_id].toString());
+							//System.out.println("was in this ...");
 
 							int oldid = volunteer[class_id].getClassid();
-							System.out.println(classroom[oldid].toString());
+							//System.out.println(classroom[oldid].toString());
 
-							removefromclass(classroom, class_id, volunteer, number_skills);
+							removefromclass(classroom, class_id, volunteer, number_skills,end);
 
-							System.out.println(classroom[oldid].toString());
-							System.out.println("now in ");
-							System.out.println(classroom[a].toString());
+							//System.out.println(classroom[oldid].toString());
+							//System.out.println("now in ");
+							//System.out.println(classroom[a].toString());
 
 							addtoclass(classroom, a, class_id, volunteer, number_skills);
 
-							System.out.println(classroom[a].toString());
+							//System.out.println(classroom[a].toString());
 							asked[a][class_id]=true;
 							return true;
 						}
 					}
 				}
 			}
-			System.out.println("no configeration that will full all classes compromises were made ");
+			System.out.println("no configeration that will full all classes compromises were made to calss "+classroom[a].getClass_name());
 			for (int i = 0; i < number_skills; i++) {
 				classroom[a].setSkill_size(i, classroom[a].getMin_skill_size(i)-classroom[a].getSkill_value(i));
+				
 			}
+			
+			for (int i = 0; i < skill_supplie.length; i++) {
+				if(classroom[a].getSkill_size(i)<0){
+					classroom[a].setSkill_size(i, 0);
+				}
+			}
+			end[a]=true;
+			System.out.println(classroom[a].printSkill_size());
 
 			return true;
-		}
+		}else{
 		System.out.println("everyone was full !!!!");
 		return false;
+		}
 	}
 
 	/*

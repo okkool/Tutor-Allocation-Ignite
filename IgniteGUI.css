@@ -1,0 +1,101 @@
+/* 
+    Created on : 15/12/2016, 8:19:45 PM
+    Author     : Coders For Causes - Jeremiah Pinto
+*/
+
+.scroll-pane{
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.scroll-pane .scroll-bar:vertical{
+    -fx-padding: 1px;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.scroll-pane .scroll-bar:vertical .track {
+    -fx-background-color: white;
+    -fx-border-color:derive(gray,80%);
+    -fx-background-radius: 2em;
+    -fx-border-radius:2em;
+}
+.scroll-pane .scroll-bar:vertical .track-background{
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 2em;
+}
+
+.scroll-pane .scroll-bar:vertical .thumb {
+    -fx-background-color: derive(black,80%);
+    -fx-background-radius: 2em;
+}
+
+.scroll-pane .scroll-bar:vertical .thumb:hover, 
+.scroll-pane .scroll-bar:vertical .thumb:pressed {
+    -fx-background-color: derive(black, 45%);
+    -fx-opacity: 0.45;
+    -fx-background-radius: 2em;
+}
+.scroll-pane .scroll-bar:vertical .increment-button, 
+.scroll-pane .scroll-bar:vertical .decrement-button {
+    -fx-background-radius: 2em;
+}
+
+.scroll-pane .scroll-bar:vertical .increment-button:hover, 
+.scroll-pane .scroll-bar:vertical .decrement-button:hover, 
+.scroll-pane .scroll-bar:vertical .increment-button:pressed, 
+.scroll-pane .scroll-bar:vertical .decrement-button:pressed {
+    -fx-background-radius: 2em;
+    -fx-background-color:transparent;
+}
+
+.scroll-pane .scroll-bar:vertical .increment-arrow:hover, 
+.scroll-pane .scroll-bar:vertical .decrement-arrow:hover, 
+.scroll-pane .scroll-bar:vertical .increment-arrow:pressed, 
+.scroll-pane .scroll-bar:vertical .decrement-arrow:pressed {
+    -fx-shape: "M 0 0 L 4 8 L 8 0 Z";
+    -fx-background-color: derive(black, 45%);
+    -fx-opacity: 0.45;
+    -fx-padding: 0.30em;
+}
+
+.scroll-pane .scroll-bar:vertical .increment-arrow {
+    -fx-color: derive(black,80%);
+    -fx-shape: "M 0 0 L 4 8 L 8 0 Z";
+    -fx-padding: 0.30em;
+}
+
+.scroll-pane .scroll-bar:vertical .decrement-arrow {
+    -fx-color: derive(black,80%);
+    -fx-shape: "M 0 0 L 4 8 L 8 0 Z";
+    -fx-padding: 0.30em;
+    -fx-rotate: -180;
+}
+
+.button {
+    -fx-pref-height: 25px;
+    -fx-pref-width: 65px;
+    -fx-font: 12px times, sans-serif;          
+}
+
+.label{
+    -fx-font: 13px times, sans-serif;
+}
+
+.myWarnLabel{
+    -fx-font: italic 11px times, sans-serif;
+}
+
+.text-area, .text-area:focused{
+    -fx-border-color: derive(gray,50%) ;
+    -fx-background-insets: 0px ;
+    -fx-background-color: transparent;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-text-box-border: transparent;
+}
+
+.text-area .content ,.text-area:focused .content {
+    -fx-background-color: white;
+}

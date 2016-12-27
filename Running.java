@@ -1,4 +1,3 @@
-
 /**
  * The main class which actually performs the allocations
  * @author Mark Robson
@@ -6,15 +5,30 @@
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.PriorityQueue;
+
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+
+//import org.apache.poi.hssf.usermodel.HSSFSheet;
+//import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+
 
 public class Running {
+	static Volunteer	[] volunteers;
+	static Classroom	[] classrooms;
+	static String 		[] skills;
+	static int number_skills;
+	static int number_classrooms;
+	static int number_volunteers;
+	static int [] skill_demand ;
+	static int [] skill_supply ;
+
 	/**
 	 * The initial algorithm which performs the matching of volunteers to classrooms via a Stable Marriage approach
 	 * TODO: Remove this from final release if possible
@@ -27,20 +41,11 @@ public class Running {
 	 * @throws InvalidAlgorithmParameterException	The obvious
 	 */
 	public static void main(String[] args) throws InvalidAlgorithmParameterException {
-
-		Volunteer	[] volunteers;
-		Classroom	[] classrooms;
-		String 		[] skills;
-		int number_skills;
-		int number_classrooms;
-		int number_volunteers;
-
-		try {
-			parseInput(volunteers, classrooms, skills, number_skills, number_classrooms, number_volunteers);
+			parseInput("Book1.xls");
 			//Input done
 			//Demand and supply are now determined
-			int [] skill_demand  = get_demand(classrooms,number_skills);
-			int [] skill_supply = get_supply(volunteers,number_skills);
+			skill_demand  = get_demand(classrooms,number_skills);
+			skill_supply = get_supply(volunteers,number_skills);
 			//A boolean array representation of allocations made
 			boolean [][] asked = new boolean [number_classrooms][number_volunteers];
 			boolean end [] = new boolean [number_classrooms];
@@ -48,13 +53,10 @@ public class Running {
 			print_sets(classrooms, volunteers, number_skills);
 			System.out.println("_++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 			System.out.println(DescString(skill_demand,skill_supply,classrooms,volunteers,number_skills,skills));
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		
 
 	}
+	
 	/**
 	 * A method used to initially parse the data from an excel document, a simple cut and paste job
 	 * TODO: Remove this for final release
@@ -64,63 +66,74 @@ public class Running {
 	 * @param number_skills		A count of the number of skills
 	 * @param number_classrooms	A count of the number of classrooms
 	 * @param number_volunteers	A count of the number of volunteers
+	 * @throws IOException 
 	 * @see Volunteer
 	 * @see Classroom
 	 */
-	public static void parseInputStatic(Volunteer[] volunteers, Classroom[] classrooms, String[] skills, int number_skills, int number_classrooms, int number_volunteers){
+	public static void parseInputStatic(Volunteer[] volunteers, Classroom[] classrooms, String[] skills, int number_skills, int number_classrooms, int number_volunteers) throws IOException{
 		//TODO: Dynamic parsing of input
-		FileInputStream fileInputStream = new FileInputStream("Book1.xls");
-		@SuppressWarnings("resource")
-		HSSFWorkbook workbook1 = new HSSFWorkbook(fileInputStream);
-		HSSFSheet Sheet0 = workbook1.getSheetAt(0);
-		
-		//It is paramount to note that the algorithm relies on a standard input format which will need to be specified to the clients
-		number_skills 		= (int) Sheet0.getRow(1).getCell(0).getNumericCellValue();
-		number_classrooms 	= (int) Sheet0.getRow(3).getCell(0).getNumericCellValue();
-		number_volunteers 	= (int) Sheet0.getRow(5).getCell(0).getNumericCellValue();
+		FileInputStream fileInputStream;
+		try {
+			fileInputStream = new FileInputStream("Book1.xls");
 
-		System.out.println("There are "+number_skills+" different skills");
+			@SuppressWarnings("resource")
+			HSSFWorkbook workbook1 = new HSSFWorkbook(fileInputStream);
+			HSSFSheet Sheet0 = workbook1.getSheetAt(0);
 
-		skills 		= new String 	[number_skills	  ];
-		volunteers	= new Volunteer [number_volunteers];
-		classrooms	= new Classroom	[number_classrooms];
+			//It is paramount to note that the algorithm relies on a standard input format which will need to be specified to the clients
+			number_skills 		= (int) Sheet0.getRow(1).getCell(0).getNumericCellValue();
+			number_classrooms 	= (int) Sheet0.getRow(3).getCell(0).getNumericCellValue();
+			number_volunteers 	= (int) Sheet0.getRow(5).getCell(0).getNumericCellValue();
 
-		for (int i = 0; i < number_skills	 ; i++) {
-			skills [i]     = Sheet0.getRow(1).getCell(1+i).getStringCellValue();
-			System.out.println(skills [i]);
-		}
-		System.out.println("There are "+number_classrooms+" different classrooms");
-		Sheet0 = workbook1.getSheetAt(1);
-		for (int i = 0; i < number_classrooms; i++) {
-			String school_name = Sheet0.getRow(1+2*i).getCell(0).getStringCellValue();
-			String class_name  = Sheet0.getRow(1+2*i).getCell(1).getStringCellValue();
-			int max_size = (int) Sheet0.getRow(2+2*i).getCell(1).getNumericCellValue();
+			System.out.println("There are "+number_skills+" different skills");
 
-			int [] 		min_skill_value = new int [number_skills];
-			int [] 		min_skill_size  = new int [number_skills];
-			for (int j = 0; j < number_skills	 ; j++) {
-				min_skill_value [j]     = (int) Sheet0.getRow(1+2*i).getCell(3+j).getNumericCellValue();
-				min_skill_size	[j]		= (int) Sheet0.getRow(2+2*i).getCell(3+j).getNumericCellValue();
+			skills 		= new String 	[number_skills	  ];
+			volunteers	= new Volunteer [number_volunteers];
+			classrooms	= new Classroom	[number_classrooms];
+
+			for (int i = 0; i < number_skills	 ; i++) {
+				skills [i]     = Sheet0.getRow(1).getCell(1+i).getStringCellValue();
+				System.out.println(skills [i]);
 			}
-			classrooms [i] = new Classroom(school_name, class_name, skills, min_skill_value, min_skill_size, max_size);
-			System.out.println(i+", "+classrooms [i].toString());
-		}
-		System.out.println("There are "+number_volunteers+" different Volunteers");
-		Sheet0 = workbook1.getSheetAt(2);
-		for (int i = 0; i < number_volunteers; i++) {
-			String name  = Sheet0.getRow(1+i).getCell(0).getStringCellValue();
-			String email = Sheet0.getRow(1+i).getCell(1).getStringCellValue();
-			int [] 	skill = new int [number_skills];
-			for (int j = 0; j < number_skills	 ; j++) {
-				skill [j]     = (int) Sheet0.getRow(1+i).getCell(2+j).getNumericCellValue();
-			}
-			int [] 	preferences = new int [number_classrooms];
+			System.out.println("There are "+number_classrooms+" different classrooms");
+			Sheet0 = workbook1.getSheetAt(1);
+			for (int i = 0; i < number_classrooms; i++) {
+				String school_name = Sheet0.getRow(1+2*i).getCell(0).getStringCellValue();
+				String class_name  = Sheet0.getRow(1+2*i).getCell(1).getStringCellValue();
+				int max_size = (int) Sheet0.getRow(2+2*i).getCell(1).getNumericCellValue();
 
-			for (int j = 0; j < number_classrooms	 ; j++) {
-				preferences [j]     = (int) Sheet0.getRow(1+i).getCell(2+number_skills+j).getNumericCellValue();
+				int [] 		min_skill_value = new int [number_skills];
+				int [] 		min_skill_size  = new int [number_skills];
+				for (int j = 0; j < number_skills	 ; j++) {
+					min_skill_value [j]     = (int) Sheet0.getRow(1+2*i).getCell(3+j).getNumericCellValue();
+					min_skill_size	[j]		= (int) Sheet0.getRow(2+2*i).getCell(3+j).getNumericCellValue();
+				}
+				classrooms [i] = new Classroom(school_name, class_name, skills, min_skill_value, min_skill_size, max_size);
+				System.out.println(i+", "+classrooms [i].toString());
 			}
-			volunteers[i] = new Volunteer(name, email, skills, skill, preferences);
-			System.out.println(i+"\t "+volunteers[i].toString());
+			System.out.println("There are "+number_volunteers+" different Volunteers");
+			Sheet0 = workbook1.getSheetAt(2);
+			for (int i = 0; i < number_volunteers; i++) {
+				String name  = Sheet0.getRow(1+i).getCell(0).getStringCellValue();
+				String email = Sheet0.getRow(1+i).getCell(1).getStringCellValue();
+				int [] 	skill = new int [number_skills];
+				for (int j = 0; j < number_skills	 ; j++) {
+					skill [j]     = (int) Sheet0.getRow(1+i).getCell(2+j).getNumericCellValue();
+				}
+				int [] 	preferences = new int [number_classrooms];
+
+				for (int j = 0; j < number_classrooms	 ; j++) {
+					preferences [j]     = (int) Sheet0.getRow(1+i).getCell(2+number_skills+j).getNumericCellValue();
+				}
+				volunteers[i] = new Volunteer(name, email, skills, skill, preferences);
+				System.out.println(i+"\t "+volunteers[i].toString());
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvalidAlgorithmParameterException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 	/**
@@ -135,58 +148,76 @@ public class Running {
 	 * @see Volunteer
 	 * @see Classroom
 	 */
-	public static void parseInput(String filePath, Volunteer[] volunteers, Classroom[] classrooms, String[] skills, int number_skills, int number_classrooms, int number_volunteers){
-		FileInputStream fileInputStream = new FileInputStream(file_path);
-		@SuppressWarnings("resource")
-		HSSFWorkbook workbook1 = new HSSFWorkbook(fileInputStream);
-		HSSFSheet Sheet0 = workbook1.getSheetAt(0);
+	public static void parseInput(String filePath){
+		FileInputStream fileInputStream;
+		try {
+			fileInputStream = new FileInputStream(filePath);
 
-		number_skills 		= (int) Sheet0.getRow(1).getCell(0).getNumericCellValue();
-		number_classrooms 	= (int) Sheet0.getRow(3).getCell(0).getNumericCellValue();
-		number_volunteers 	= (int) Sheet0.getRow(5).getCell(0).getNumericCellValue();
+			HSSFWorkbook workbook1 ;
+			try {
+				workbook1 = new HSSFWorkbook(fileInputStream);
 
-		System.out.println("There are "+number_skills+" different skills");
+				HSSFSheet Sheet0 = workbook1.getSheetAt(0);
 
-		skills 		= new String 	[number_skills	  ];
-		volunteers	= new Volunteer [number_volunteers];
-		classrooms	= new Classroom	[number_classrooms];
+				number_skills 		= (int) Sheet0.getRow(1).getCell(0).getNumericCellValue();
+				number_classrooms 	= (int) Sheet0.getRow(3).getCell(0).getNumericCellValue();
+				number_volunteers 	= (int) Sheet0.getRow(5).getCell(0).getNumericCellValue();
 
-		for (int i = 0; i < number_skills	 ; i++) {
-			skills [i]     = Sheet0.getRow(1).getCell(1+i).getStringCellValue();
-			System.out.println(skills [i]);
-		}
-		System.out.println("There are "+number_classrooms+" different classrooms");
-		Sheet0 = workbook1.getSheetAt(1);
-		for (int i = 0; i < number_classrooms; i++) {
-			String school_name = Sheet0.getRow(1+2*i).getCell(0).getStringCellValue();
-			String class_name  = Sheet0.getRow(1+2*i).getCell(1).getStringCellValue();
-			int max_size = (int) Sheet0.getRow(2+2*i).getCell(1).getNumericCellValue();
+				System.out.println("There are "+number_skills+" different skills");
 
-			int [] 		min_skill_value = new int [number_skills];
-			int [] 		min_skill_size  = new int [number_skills];
-			for (int j = 0; j < number_skills	 ; j++) {
-				min_skill_value [j]     = (int) Sheet0.getRow(1+2*i).getCell(3+j).getNumericCellValue();
-				min_skill_size	[j]		= (int) Sheet0.getRow(2+2*i).getCell(3+j).getNumericCellValue();
+				skills 		= new String 	[number_skills	  ];
+				volunteers	= new Volunteer [number_volunteers];
+				classrooms	= new Classroom	[number_classrooms];
+
+				for (int i = 0; i < number_skills	 ; i++) {
+					skills [i]     = Sheet0.getRow(1).getCell(1+i).getStringCellValue();
+					System.out.println(skills [i]);
+				}
+				System.out.println("There are "+number_classrooms+" different classrooms");
+				Sheet0 = workbook1.getSheetAt(1);
+				for (int i = 0; i < number_classrooms; i++) {
+					String school_name = Sheet0.getRow(1+2*i).getCell(0).getStringCellValue();
+					String class_name  = Sheet0.getRow(1+2*i).getCell(1).getStringCellValue();
+					int max_size = (int) Sheet0.getRow(2+2*i).getCell(1).getNumericCellValue();
+
+					int [] 		min_skill_value = new int [number_skills];
+					int [] 		min_skill_size  = new int [number_skills];
+					for (int j = 0; j < number_skills	 ; j++) {
+						min_skill_value [j]     = (int) Sheet0.getRow(1+2*i).getCell(3+j).getNumericCellValue();
+						min_skill_size	[j]		= (int) Sheet0.getRow(2+2*i).getCell(3+j).getNumericCellValue();
+					}
+					try {
+						classrooms [i] = new Classroom(school_name, class_name, skills, min_skill_value, min_skill_size, max_size);
+					} catch (InvalidAlgorithmParameterException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					System.out.println(i+", "+classrooms [i].toString());
+				}
+				System.out.println("There are "+number_volunteers+" different Volunteers");
+				Sheet0 = workbook1.getSheetAt(2);
+				for (int i = 0; i < number_volunteers; i++) {
+					String name  = Sheet0.getRow(1+i).getCell(0).getStringCellValue();
+					String email = Sheet0.getRow(1+i).getCell(1).getStringCellValue();
+					int [] 	skill = new int [number_skills];
+					for (int j = 0; j < number_skills	 ; j++) {
+						skill [j]     = (int) Sheet0.getRow(1+i).getCell(2+j).getNumericCellValue();
+					}
+					int [] 	preferences = new int [number_classrooms];
+
+					for (int j = 0; j < number_classrooms	 ; j++) {
+						preferences [j]     = (int) Sheet0.getRow(1+i).getCell(2+number_skills+j).getNumericCellValue();
+					}
+					volunteers[i] = new Volunteer(name, email, skills, skill, preferences);
+					System.out.println(i+"\t "+volunteers[i].toString());
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			classrooms [i] = new Classroom(school_name, class_name, skills, min_skill_value, min_skill_size, max_size);
-			System.out.println(i+", "+classrooms [i].toString());
-		}
-		System.out.println("There are "+number_volunteers+" different Volunteers");
-		Sheet0 = workbook1.getSheetAt(2);
-		for (int i = 0; i < number_volunteers; i++) {
-			String name  = Sheet0.getRow(1+i).getCell(0).getStringCellValue();
-			String email = Sheet0.getRow(1+i).getCell(1).getStringCellValue();
-			int [] 	skill = new int [number_skills];
-			for (int j = 0; j < number_skills	 ; j++) {
-				skill [j]     = (int) Sheet0.getRow(1+i).getCell(2+j).getNumericCellValue();
-			}
-			int [] 	preferences = new int [number_classrooms];
-
-			for (int j = 0; j < number_classrooms	 ; j++) {
-				preferences [j]     = (int) Sheet0.getRow(1+i).getCell(2+number_skills+j).getNumericCellValue();
-			}
-			volunteers[i] = new Volunteer(name, email, skills, skill, preferences);
-			System.out.println(i+"\t "+volunteers[i].toString());
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 	/**
@@ -196,34 +227,23 @@ public class Running {
 	 * @throws InvalidAlgorithmParameterException
 	 */
 	public static String pairingSystem(String file_path) throws InvalidAlgorithmParameterException{
-		Volunteer	[] volunteers;
-		Classroom	[] classrooms;
-		String 		[] skills;
-		int number_skills;
-		int number_classrooms;
-		int number_volunteers;
+		
 
-		try {
-			parseInput(volunteers, classrooms, skills, number_skills, number_classrooms, number_volunteers);
-			//Input done 
-			boolean [][] asked = new boolean [number_classrooms][number_volunteers];
-			boolean end [] = new boolean [number_classrooms];
+		parseInput(file_path);
+		//Input done 
+		boolean [][] asked = new boolean [number_classrooms][number_volunteers];
+		boolean end [] = new boolean [number_classrooms];
 
-			int [] skill_demand  = get_demand(classrooms,number_skills);
-			int [] skill_supply = get_supply(volunteers,number_skills);
+		int [] skill_demand  = get_demand(classrooms,number_skills);
+		int [] skill_supply = get_supply(volunteers,number_skills);
 
-			while(askme(asked,classrooms,volunteers,number_skills,end));
-			print_sets(classrooms, volunteers, number_skills);
+		while(askme(asked,classrooms,volunteers,number_skills,end));
+		print_sets(classrooms, volunteers, number_skills);
 
 
-			return DescString(skill_demand,skill_supply,classrooms,volunteers,number_skills,skills);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return "error in file";
+		return DescString(skill_demand,skill_supply,classrooms,volunteers,number_skills,skills);
 	}
+	
 	/**
 	 * A method used to simply printout information about the execution environment
 	 * @param skill_demand
@@ -236,6 +256,11 @@ public class Running {
 	 * @see	Volunteer
 	 * @see Classroom
 	 */
+
+	private static String DescString() {
+		return DescString(skill_demand,skill_supply, classrooms, volunteers,number_skills ,skills);
+	}
+
 	private static String DescString(int[] skill_demand, int[] skill_supply, Classroom[] classrooms, Volunteer[] volunteers, int number_skills ,String[] skills) {
 
 		String out = "\tSupply\n";
@@ -258,7 +283,7 @@ public class Running {
 						out = out + "\t"+classrooms[i].getSchool_name()+" "+classrooms[i].getClass_name()+" is missing:\n";
 						for (int j2 = 0; j2 < missing.length; j2++) {
 							if(missing[j2]>0)
-							out = out +"\t\t"+skills[j2]+"\t"+missing[j2]+"\n";
+								out = out +"\t\t"+skills[j2]+"\t"+missing[j2]+"\n";
 						}
 					}
 				}
@@ -278,6 +303,10 @@ public class Running {
 
 		return out;
 	}
+	private static void save(String path){
+		System.out.println("TODO SAVE THIS TO "+ path);
+	}
+
 	/**
 	 * A method to determine the demand of all skills present
 	 * @param classrooms	An array of classrooms which have demand for skills
@@ -285,17 +314,17 @@ public class Running {
 	 * @return				An integer array representing the demand for each skill (represented by the index) corresponding to the common skill string
 	 */
 	private static int [] get_demand(Classroom	[] classrooms, int number_skills ) {
-		int [] skill_demand = new int [number_skills];
+		int [] skill_demanda = new int [number_skills];
 		for (int i = 0; i < classrooms.length; i++) {
 			for (int j = 0; j < number_skills; j++) {
-				skill_demand[j] += classrooms[i].getMin_skill_size(j);
-				skill_demand[j] -= classrooms[i].getSkill_value(j);
-				if(skill_demand[j]<0){
-					skill_demand[j]=0;
+				skill_demanda[j] += classrooms[i].getMin_skill_size(j);
+				skill_demanda[j] -= classrooms[i].getSkill_value(j);
+				if(skill_demanda[j]<0){
+					skill_demanda[j]=0;
 				}
 			}
 		}
-		return skill_demand;
+		return skill_demanda;
 	}
 	/**
 	 * A method to determine the supply of all skills present across all volunteers
@@ -519,21 +548,21 @@ public class Running {
 	 * @param volunteer		The array of volunteers
 	 * @param number_skills	The count of skills available
 	 */
-	private static void print_sets( Classroom [] classroom ,Volunteer [] volunteer,int number_skills) {
-		int [] skill_demand  = get_demand(classroom,number_skills );
+	private static void print_sets( Classroom [] classrooms ,Volunteer [] volunteer,int number_skills) {
+		int [] skill_demand  =get_demand(classrooms,number_skills );
 		int [] skill_supply = get_supply(volunteer,number_skills);
 
 		System.out.println("demand  "+Arrays.toString(skill_demand));
 		System.out.println("supply "+Arrays.toString(skill_supply));
 
 		System.out.println();
-		for (int i = 0; i < classroom.length; i++) {
-			System.out.println(classroom[i].getSchool_name()+"\t\t"+classroom[i].getClass_name());
-			System.out.println("looked for    :"+classroom[i].printMin_skill_size());
-			System.out.println("got           :"+classroom[i].printskill_value());
+		for (int i = 0; i < classrooms.length; i++) {
+			System.out.println(classrooms[i].getSchool_name()+"\t\t"+classrooms[i].getClass_name());
+			System.out.println("looked for    :"+classrooms[i].printMin_skill_size());
+			System.out.println("got           :"+classrooms[i].printskill_value());
 
-			for (int j = 0; j < classroom[i].getsize(); j++) {
-				System.out.println(volunteer[classroom[i].getVolunteers(j)].summary());
+			for (int j = 0; j < classrooms[i].getsize(); j++) {
+				System.out.println(volunteer[classrooms[i].getVolunteers(j)].summary());
 			}
 		}
 		System.out.println();
@@ -552,4 +581,3 @@ class QueueComparator implements Comparator<Integer[]>{
 		return arg1[0] -arg0[0];
 	}
 }
-

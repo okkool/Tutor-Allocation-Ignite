@@ -5,19 +5,17 @@
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.PriorityQueue;
-
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-
-//import org.apache.poi.hssf.usermodel.HSSFSheet;
-//import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 
-
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 
 public class Running {
 	static Volunteer	[] volunteers;
@@ -41,22 +39,22 @@ public class Running {
 	 * @throws InvalidAlgorithmParameterException	The obvious
 	 */
 	public static void main(String[] args) throws InvalidAlgorithmParameterException {
-			parseInput("Book1.xls");
-			//Input done
-			//Demand and supply are now determined
-			skill_demand  = get_demand(classrooms,number_skills);
-			skill_supply = get_supply(volunteers,number_skills);
-			//A boolean array representation of allocations made
-			boolean [][] asked = new boolean [number_classrooms][number_volunteers];
-			boolean end [] = new boolean [number_classrooms];
-			while(askme(asked,classrooms,volunteers,number_skills,end));
-			print_sets(classrooms, volunteers, number_skills);
-			System.out.println("_++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-			System.out.println(DescString(skill_demand,skill_supply,classrooms,volunteers,number_skills,skills));
-		
+		parseInput("Book1.xls");
+		//Input done
+		//Demand and supply are now determined
+		skill_demand  = get_demand(classrooms,number_skills);
+		skill_supply = get_supply(volunteers,number_skills);
+		//A boolean array representation of allocations made
+		boolean [][] asked = new boolean [number_classrooms][number_volunteers];
+		boolean end [] = new boolean [number_classrooms];
+		while(askme(asked,classrooms,volunteers,number_skills,end));
+		print_sets(classrooms, volunteers, number_skills);
+		System.out.println("_++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+		System.out.println(DescString(skill_demand,skill_supply,classrooms,volunteers,number_skills,skills));
+
 
 	}
-	
+
 	/**
 	 * A method used to initially parse the data from an excel document, a simple cut and paste job
 	 * TODO: Remove this for final release
@@ -128,6 +126,7 @@ public class Running {
 				volunteers[i] = new Volunteer(name, email, skills, skill, preferences);
 				System.out.println(i+"\t "+volunteers[i].toString());
 			}
+			fileInputStream.close();
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -206,7 +205,18 @@ public class Running {
 					int [] 	preferences = new int [number_classrooms];
 
 					for (int j = 0; j < number_classrooms	 ; j++) {
-						preferences [j]     = (int) Sheet0.getRow(1+i).getCell(2+number_skills+j).getNumericCellValue();
+
+						if( Sheet0.getRow(1+i).getCell(2+number_skills+j) == null){
+							preferences [j]     = -1;
+						}else{
+							if(Sheet0.getRow(1+i).getCell(2+number_skills+j).getCellType() == HSSFCell.CELL_TYPE_NUMERIC){
+								preferences [j]     = (int) Sheet0.getRow(1+i).getCell(2+number_skills+j).getNumericCellValue();	
+							}else{
+								preferences [j]     = Integer.parseInt(Sheet0.getRow(1+i).getCell(2+number_skills+j).getStringCellValue());
+							}
+
+						}
+
 					}
 					volunteers[i] = new Volunteer(name, email, skills, skill, preferences);
 					System.out.println(i+"\t "+volunteers[i].toString());
@@ -215,7 +225,11 @@ public class Running {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			fileInputStream.close();
 		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -227,7 +241,7 @@ public class Running {
 	 * @throws InvalidAlgorithmParameterException
 	 */
 	public static String pairingSystem(String file_path) throws InvalidAlgorithmParameterException{
-		
+
 
 		parseInput(file_path);
 		//Input done 
@@ -243,7 +257,7 @@ public class Running {
 
 		return DescString(skill_demand,skill_supply,classrooms,volunteers,number_skills,skills);
 	}
-	
+
 	/**
 	 * A method used to simply printout information about the execution environment
 	 * @param skill_demand
@@ -303,8 +317,73 @@ public class Running {
 
 		return out;
 	}
-	private static void save(String path){
-		System.out.println("TODO SAVE THIS TO "+ path);
+	public static void save(String path){
+		HSSFWorkbook workbook = new HSSFWorkbook();
+		HSSFSheet sheet = workbook.createSheet("volunteers");  
+
+
+		HSSFRow rowhead = sheet.createRow((short)0);
+		rowhead.createCell(0).setCellValue("Name");
+		rowhead.createCell(1).setCellValue("email");
+		rowhead.createCell(2).setCellValue("school name");
+		rowhead.createCell(3).setCellValue("class name");
+
+		for (int j = 0; j < volunteers.length; j++) {
+
+			rowhead = sheet.createRow(j);
+			rowhead.createCell(0).setCellValue(volunteers[j].getName());
+			rowhead.createCell(1).setCellValue(volunteers[j].getEmail());
+			if(volunteers[j].getClassid()!=-1){
+				rowhead.createCell(2).setCellValue(classrooms[volunteers[j].getClassid()].getSchool_name());
+				rowhead.createCell(3).setCellValue(classrooms[volunteers[j].getClassid()].getSchool_name());
+			}else{
+				rowhead.createCell(2).setCellValue("Not Allocated");
+				rowhead.createCell(3).setCellValue("Not Allocated");
+			}
+		}
+
+		for (int i = 0; i < classrooms.length; i++) {
+			sheet = workbook.createSheet((classrooms[i].getClass_name()+" "+classrooms[i].getSchool_name()).replaceAll("[^a-zA-Z0-9]+"," ").trim());//.replaceAll("-+.^:;@#$%^&*|=`',\"\\>< ",""));
+
+			rowhead = sheet.createRow((short)0);
+			rowhead.createCell(0).setCellValue("Name");
+			rowhead.createCell(1).setCellValue("email");
+			for (int j = 0; j < classrooms[i].getsize(); j++) {
+
+				rowhead = sheet.createRow(j);
+				rowhead.createCell(0).setCellValue(volunteers[classrooms[i].getVolunteers(j)].getName());
+				rowhead.createCell(1).setCellValue(volunteers[classrooms[i].getVolunteers(j)].getEmail());
+			}
+		}
+
+		sheet = workbook.createSheet("Unallocated volunteers"); 
+		rowhead = sheet.createRow((short)0);
+		rowhead.createCell(0).setCellValue("Name");
+		rowhead.createCell(1).setCellValue("email");
+
+		for (int j = 0, k = 0; j < volunteers.length; j++) {
+			if(volunteers[j].getClassid()==-1){
+				rowhead = sheet.createRow(k);
+				rowhead.createCell(0).setCellValue(volunteers[j].getName());
+				rowhead.createCell(1).setCellValue(volunteers[j].getEmail());
+				k++;
+			}
+		}
+
+
+		FileOutputStream fileOut;
+		try {
+			fileOut = new FileOutputStream(path);
+			workbook.write(fileOut);
+			fileOut.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 	}
 
 	/**

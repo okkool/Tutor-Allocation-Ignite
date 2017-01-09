@@ -1,4 +1,6 @@
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.PrintStream;
 import javafx.application.Application;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
@@ -10,6 +12,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.Scene;
@@ -19,17 +22,21 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 /**
- *
- * @author Coders For Causes
- * 
+ * @author Coders For Causes 
  */
-public class Ignite extends Application {
+public class Ignite extends Application 
+{
     
+	Running Students = new Running();
+	
+	ImageView imageView = new ImageView(new Image(this.getClass().getResource("h.png").toExternalForm(), 25, 25, true, true));	
+        
 //Input screen variables
 /* **************************************************************************************************************************** */
     FileChooser fileChooser = new FileChooser();
     Button inBrowseButton = new Button("Browse");
-    Button startButton = new Button("Start");         
+    Button startButton = new Button("Start");    
+    Button helpButtonInput = new Button(null,imageView);
     Label Desc = new Label("Location Of Excel File:");
     Label Warn = new Label("( Files must end in .xls or .xlsx )");
     TextField Direc = new TextField();
@@ -38,7 +45,9 @@ public class Ignite extends Application {
 //Output screen variables
 /* **************************************************************************************************************************** */
     Button outBrowseButton = new Button("Browse");
-    Button saveButton = new Button("Save");         
+    Button saveButton = new Button("Save");  
+    Button helpButtonOutput = new Button(null,imageView);
+    Button logButton = new Button("Log");         
     Label Dsc = new Label("Description:");
     Label Save = new Label("Save File As:");
     Label Loc = new Label("Save File In:");
@@ -128,7 +137,20 @@ public class Ignite extends Application {
     
     @Override
     public void start(final Stage inputStage) 
-    {
+    {    	
+    	ScrollPane helppane = new ScrollPane();
+    	Scene help = new Scene(helppane, 576, 250);
+        TextArea helpInfo = new TextArea("");
+        helpInfo.setEditable(false);
+        //helpInfo.setWrapText(true);
+        helppane.setFitToWidth(true);
+        helppane.setFitToHeight(true);
+        helppane.setContent(helpInfo);
+        Stage helpStage = new Stage();
+        helpStage.getIcons().add(new Image(getClass().getResourceAsStream("icon.jpeg")));
+    	helpStage.setTitle("Ignite Mentoring");      	
+        help.getStylesheets().add("IgniteGUI.css");
+        helpStage.setScene(help);
         
 //Output screen variables
 /* **************************************************************************************************************************** */
@@ -139,6 +161,39 @@ public class Ignite extends Application {
            
         saveButton.setDisable(true);   
         
+        helpButtonOutput.setStyle(
+                "-fx-background-radius: 4em; " +
+                "-fx-min-width: 20px; " +
+                "-fx-min-height: 20px; " +
+                "-fx-max-width: 20px; " +
+                "-fx-max-height: 20px;"
+        );
+        
+        helpButtonOutput.setOnAction((final ActionEvent e) -> 
+        {
+            helpStage.show();
+        });
+        
+        ScrollPane logpane = new ScrollPane();    	
+        TextArea logInfo = new TextArea("");
+        logInfo.setEditable(false);
+        logInfo.setWrapText(true);
+        logpane.setFitToWidth(true);
+        logpane.setFitToHeight(true);
+        logpane.setContent(helpInfo);
+        
+        Stage logStage = new Stage();
+        logStage.getIcons().add(new Image(getClass().getResourceAsStream("icon.jpeg")));
+    	logStage.setTitle("Ignite Mentoring log");      	
+        
+        Scene log = new Scene(logpane, 576, 250);
+        log.getStylesheets().add("IgniteGUI.css");
+        logStage.setScene(log);
+        
+        logButton.setOnAction((final ActionEvent e) -> 
+        {
+        	logStage.show();
+        });
         
         exfile.focusedProperty().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> 
         {
@@ -232,6 +287,9 @@ public class Ignite extends Application {
             {
                 System.out.println(filePath + "\n" + saveName + "\n" + savePath);
                 outputStage.close();
+                //save here tag
+                Students.save(savePath+"\\"+saveName+".xls");
+                
                 infoBox("File has been saved", "Ignite Mentoring");
                 
             }
@@ -243,6 +301,11 @@ public class Ignite extends Application {
         AnchorPane.setLeftAnchor(Dsc, 12.0);
         //OutputAnchorPane.setRightAnchor(Desc, 230.0);
         //OutputAnchorPane.setBottomAnchor(Desc, 90.0);
+        
+        AnchorPane.setTopAnchor(helpButtonOutput, 8.0);
+        AnchorPane.setRightAnchor(helpButtonOutput, 15.0);
+        //OutputAnchorPane.setLeftAnchor(helpButton, 230.0);
+        //OutputAnchorPane.setBottomAnchor(helpButton, 90.0);
         
         AnchorPane.setTopAnchor(Answer, 35.0);
         AnchorPane.setLeftAnchor(Answer, 12.0);
@@ -269,6 +332,11 @@ public class Ignite extends Application {
         AnchorPane.setRightAnchor(Output, 12.0);
         AnchorPane.setBottomAnchor(Output, 46.0);
         
+        //OutputAnchorPane.setTopAnchor(logButton, 91.0);
+        AnchorPane.setLeftAnchor(logButton, 12.0);
+        //AnchorPane.setRightAnchor(logButton, 87.0);
+        AnchorPane.setBottomAnchor(logButton, 12.0);
+        
         //OutputAnchorPane.setTopAnchor(browseButton, 91.0);
         //OutputAnchorPane.setLeftAnchor(browseButton, 250.0);
         AnchorPane.setRightAnchor(outBrowseButton, 87.0);
@@ -287,7 +355,7 @@ public class Ignite extends Application {
         Answer.setFitToHeight(true);
         Answer.setContent(text);
         
-        OutputAnchorPane.getChildren().addAll(Dsc, Answer,  exfile, Loc, Save, Output, saveButton, outBrowseButton);
+        OutputAnchorPane.getChildren().addAll(Dsc, Answer, helpButtonOutput, exfile, Loc, Save, Output, logButton, saveButton, outBrowseButton);
         
         Scene outputScene = new Scene(OutputAnchorPane, 600, 397);
         outputScene.getStylesheets().add("IgniteGUI.css");
@@ -302,6 +370,18 @@ public class Ignite extends Application {
        
         inBrowseButton.requestFocus();
         startButton.setDisable(true);
+        helpButtonInput.setStyle(
+                "-fx-background-radius: 4em; " +
+                "-fx-min-width: 20px; " +
+                "-fx-min-height: 20px; " +
+                "-fx-max-width: 20px; " +
+                "-fx-max-height: 20px;"
+        );
+        
+        helpButtonInput.setOnAction((final ActionEvent e) -> 
+        {
+            helpStage.show();
+        });
          
         Direc.focusedProperty().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> 
         {
@@ -313,7 +393,9 @@ public class Ignite extends Application {
                         startButton.setDisable(false);
                 });
             }
-        });        
+        });   
+        
+        
  
         inBrowseButton.setOnAction((ActionEvent e) -> 
         {
@@ -341,6 +423,16 @@ public class Ignite extends Application {
             else
             {
                 filePath = Direc.getText();
+               
+                try {
+					String discription = Students.pairingSystem(filePath);
+					text.setText(discription);
+				} catch (Exception e1) {
+					//Error here
+					e1.printStackTrace();
+				}
+                
+                
                 inputStage.close();
                 outputStage.show();
             }
@@ -368,12 +460,17 @@ public class Ignite extends Application {
         AnchorPane.setRightAnchor(inBrowseButton, 97.0);
         AnchorPane.setBottomAnchor(inBrowseButton, 20.0);
         
+        AnchorPane.setTopAnchor(helpButtonInput, 15.0);
+        //AnchorPane.setLeftAnchor(helpButton, 17.0);
+        AnchorPane.setRightAnchor(helpButtonInput, 15.0);
+        //AnchorPane.setBottomAnchor(helpButton, 20.0);
+        
         //inputAnchorPane.setTopAnchor(startButton, 91.0);
         AnchorPane.setLeftAnchor(startButton, 333.0);
         AnchorPane.setRightAnchor(startButton, 15.0);
         AnchorPane.setBottomAnchor(startButton, 20.0);
         
-        inputAnchorPane.getChildren().addAll(Desc, Warn, inBrowseButton, Direc, startButton);
+        inputAnchorPane.getChildren().addAll(Desc, Warn, inBrowseButton, helpButtonInput, Direc, startButton);
         
         Scene inputScene = new Scene(inputAnchorPane, 411, 128);
         inputScene.getStylesheets().add("IgniteGUI.css");

@@ -5,15 +5,13 @@ public class Volunteer {
 	private String email;
 	private int classid;
 	
-	private String []	skills;
 	private int [] 		skill_value;
 	private int [] 		preferences;
 	
-	public Volunteer(String name, String email, String[] skills, int[] skill_value, int [] preferences) {
+	public Volunteer(String name, String email, int[] skill_value, int [] preferences) {
 		super();
 		this.name 		 = name;
 		this.email 		 = email;
-		this.skills 	 = skills;
 		this.skill_value = skill_value;
 		this.preferences = preferences;
 		this.classid = -1;
@@ -22,8 +20,8 @@ public class Volunteer {
 
 	@Override
 	public String 		toString		() {
-		return "Volunteer [name=" + name + ", email=" + email + ", skills=" + Arrays.toString(skills) + ", skill_value="
-				+ Arrays.toString(skill_value) + ", preferences=" + Arrays.toString(preferences) + "]";
+		return "Volunteer [Name=" + String.format("%-32s", name) + ", E-mail=" +String.format("%-40s", email) +", skill_value="
+				+ Arrays.toString(skill_value) + ", Preferences=" + Arrays.toString(preferences) + "]";
 	}
 	protected int		getClassid		() {
 		return classid;
@@ -37,17 +35,12 @@ public class Volunteer {
 	protected String 	getEmail		() {
 		return email;
 	}
-	protected String[] 	getSkills		() {
-		return skills;
-	}
+	
 	protected int	 	getSkill_value	(int i) {
 		return skill_value[i];
 	}	
 	protected int 		getPreferences	(int i) {
 		return preferences[i];
-	}
-	protected void 		setSkills		(int i, String skills) {
-		this.skills[i] = skills;
 	}
 	protected void 		setSkill_value	(int i, int skill_value) {
 		this.skill_value[i] = skill_value;
@@ -55,15 +48,23 @@ public class Volunteer {
 
 
 	public String summary() {
-		if(classid ==-1){
-			return name+"\t "+Arrays.toString(skill_value)+" was not used";
+		if(classid == -1){
+			return (String.format("\t%1$-32s ", name) + Arrays.toString(skill_value) + " was Not Allocated");
+			//return ("\t" + name+ "\t " + Arrays.toString(skill_value) + " was Not Allocated");
 		}
-		return name+"\t "+Arrays.toString(skill_value)+" was used";/*+" was their "+
+		return (String.format("\t%1$-32s ", name) + Arrays.toString(skill_value));
+		/*return ("\t" + name + "\t " + Arrays.toString(skill_value) + " was Allocated");/*+" was their "+
 		(preferences[classid]==0?"1st":
 			(preferences[classid]==1?"2nd":
 				(preferences[classid]==2?"3rd":
 					(preferences[classid]+1+"th"))))+" preferences";
 	*/
+	}
+
+
+	public int[] getSkill_values() {
+		
+		return skill_value;
 	}
 	
 }
